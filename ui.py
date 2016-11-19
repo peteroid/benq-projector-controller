@@ -7,6 +7,7 @@ class Application(tk.Frame):
         self.pack()
         self.add_quit_button()
         self.add_power_on_button()
+        self.add_power_off_button()
         self.add_entry()
 
     # def create_widgets(self):
@@ -27,10 +28,22 @@ class Application(tk.Frame):
         p.power_on()
         p.close()
 
+    def power_off_handler(self):
+        # print('text: %s' % (self.entry_string.get()))
+        port_name = self.entry_string.get()
+        p = Projector(port_name)
+        p.power_off()
+        p.close()
+
     def add_power_on_button(self):
         self.power_on = tk.Button(self, text="ON", fg="black",
                                   command=self.power_on_handler)
         self.power_on.pack(side="right")
+
+    def add_power_off_button(self):
+        self.power_off = tk.Button(self, text="OFF", fg="black",
+                                  command=self.power_off_handler)
+        self.power_off.pack(side="right")
 
     def add_quit_button(self):
         self.quit = tk.Button(self, text="QUIT", fg="red",
