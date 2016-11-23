@@ -58,7 +58,9 @@ class Projector:
         except IndexError:
             logging.debug("Error -> serial result: %s" % result)
 
-        return result.replace('\r', '').replace('\n', '')
+        return result\
+            .replace('\r', '')\
+            .replace('\n', '')
 
     @port_must_initialized
     def get_attr(self, attr, wait=0):
@@ -71,7 +73,9 @@ class Projector:
         except IndexError:
             pass
         logging.debug("get_attr: respond: %s" % result)
-        return result
+        return result\
+            .replace('#', '')\
+            .replace('?', '')
 
     def is_initialized(self):
         return self._port != None
@@ -93,6 +97,7 @@ class Projector:
             time.sleep(1)
         return self._model
 
+    ''' seems the model doesn't support for this. this will return as a block item '''
     def get_3D_status(self):
         return self.get_attr('3d')
 
@@ -111,17 +116,11 @@ class Projector:
         time.sleep(0.5)
         self.send_command('pow=off')
 
+    def disable_3d(self):
+        self.send_command('3d=off')
+
     def enable_3d(self):
-        if 'MX819ST' in self._model:
-            self.open_menu()
-            for _ in range(5):
-                self.down()
-            for _ in range(2):
-                self.enter()
-        elif 'MW853UST' in self._model:
-            pass
-        else:
-            pass
+        self.send_command('3d=fs')
 
     def open_menu(self):
         self.send_command('menu=on')
@@ -140,6 +139,9 @@ class Projector:
 
     def enter(self):
         self.send_command('down')
+
+    def projector_port(self):
+        return self._port
 
 class Config:
     num_pf_port = 0
