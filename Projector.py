@@ -6,6 +6,10 @@ class Projector:
     _port = None
     _model = ''
 
+    @staticmethod
+    def get_all_available_ports():
+        return [p[0] for p in serial.tools.list_ports.comports()]
+
     def port_must_initialized(func):
         def wrapper(self, *args, **kwargs):
             if not self.is_initialized():
@@ -16,11 +20,11 @@ class Projector:
 
         return wrapper
 
-    def __init__(self, portName, baud_rate=115200, timeout=0.1, **kwargs):
-        availablePorts = [p[0] for p in serial.tools.list_ports.comports()]
-        if not portName in availablePorts:
+    def __init__(self, portName, baud_rate=115200, timeout=0.5, **kwargs):
+        available_ports = Projector.get_all_available_ports()
+        if not portName in available_ports:
             print("Port: %s not found. Please check the connection." % (portName))
-            print('Available ports: %s' % (availablePorts))
+            print('Available ports: %s' % (available_ports))
         else:
             self._port = serial.Serial(portName, baud_rate, timeout=timeout, **kwargs)
             self._model = self.get_model_name()
@@ -47,13 +51,14 @@ class Projector:
         result = result.decode()
         logging.debug("serial result: %s" % result)
         try:
-            if '?#\r' in result:
-                result = result.split('?#\r')[1]
+            if '#\r' in result:
+                result = result[result.index('#\r') + 2 if '#\r' in result else 0:]
             else:
-                result = result.split('\n')[1]
+                result = result[result.index('\n') + 1 if '\n' in result else 0:]
         except IndexError:
             logging.debug("Error -> serial result: %s" % result)
-        return result
+
+        return result.replace('\r', '').replace('\n', '')
 
     @port_must_initialized
     def get_attr(self, attr, wait=0):
@@ -76,15 +81,16 @@ class Projector:
         self.read_command_result()
 
     def get_power(self):
-        return self.get_attr('pow')
+        return self.get_attr('pow', wait=1)
 
     def get_source(self):
         return self.get_attr('sour')
 
-    ''' since some models need time to fetch this result, better to wait up to 5 seconds '''
+    ''' since some models need time to fetch this result, better to wait up to 8 seconds '''
     def get_model_name(self):
         if self._model is '':
-            self._model = self.get_attr('modelname', wait=5)
+            self._model = self.get_attr('modelname', wait=8)
+            time.sleep(1)
         return self._model
 
     def get_3D_status(self):
@@ -94,7 +100,8 @@ class Projector:
         return [
             self.get_model_name(),
             self.get_power(),
-            self.get_source()
+            self.get_source(),
+            self.get_3D_status()
         ]
 
     def power_on(self):
@@ -104,8 +111,17 @@ class Projector:
         time.sleep(0.5)
         self.send_command('pow=off')
 
-    # def enable_3d(self):
-    #     if self._model is 'MX819ST'
+    def enable_3d(self):
+        if 'MX819ST' in self._model:
+            self.open_menu()
+            for _ in range(5):
+                self.down()
+            for _ in range(2):
+                self.enter()
+        elif 'MW853UST' in self._model:
+            pass
+        else:
+            pass
 
     def open_menu(self):
         self.send_command('menu=on')
@@ -125,3 +141,22 @@ class Projector:
     def enter(self):
         self.send_command('down')
 
+class Config:
+    num_pf_port = 0
+    ports = []
+
+    def __init__(self, config_file_name='./config.ini'):
+        with open(config_file_name) as config_file:
+            for line in config_file:
+                if line.startswith('ports='):
+                    # deal with different ports
+                    self.ports = line \
+                        .replace('ports=', '') \
+                        .replace('\n', '') \
+                        .replace(' ', '') \
+                        .split(',')
+
+                elif line.startswith('num_of_port='):
+                    self.num_pf_port = int(line.replace('num_of_port=', ''))
+            logging.debug("num_of_port: %d" % self.num_pf_port)
+            logging.debug("ports: %s" % self.ports)

@@ -1,0 +1,5 @@
+future==0.16.0
+PyInstaller==3.3.dev0+483c819
+pypiwin32==219
+pyserial==3.2.1
+
