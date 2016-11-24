@@ -73,6 +73,10 @@ class Projector:
         except IndexError:
             pass
         logging.debug("get_attr: respond: %s" % result)
+        if 'Block' in result:
+            result = 'Unknown'
+        elif 'Illegal' in result:
+            result = 'Error'
         return result\
             .replace('#', '')\
             .replace('?', '')
@@ -116,10 +120,10 @@ class Projector:
         time.sleep(0.5)
         self.send_command('pow=off')
 
-    def disable_3d(self):
+    def disable_3D(self):
         self.send_command('3d=off')
 
-    def enable_3d(self):
+    def enable_3D(self):
         self.send_command('3d=fs')
 
     def open_menu(self):

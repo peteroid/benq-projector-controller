@@ -8,9 +8,9 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 class ProjectorComponent(tk.Frame):
     _projector = None
 
-    def __init__(self, master, projector=None):
+    def __init__(self, master, projector_port=None):
         super().__init__(master)
-        self._projector = projector
+        self._projector = Projector(projector_port)
 
         self.display_panel = tk.Frame(self)
         self.display_panel.grid(row=1, column=1)
@@ -18,19 +18,23 @@ class ProjectorComponent(tk.Frame):
         self.action_panel = tk.Frame(self)
         self.action_panel.grid(row=1, column=2)
 
-        self.add_power_on_button()
-        self.add_power_off_button()
-        self.add_3d_on_button()
-        self.add_3d_off_button()
-
         self.add_model_label()
         self.add_status_label()
+
+        if not self._projector.is_initialized():
+            self.update_status_label(text=('%s not initialized') % (projector_port))
+            return
+
+        self.add_power_on_button()
+        self.add_power_off_button()
+        self.add_3D_on_button()
+        self.add_3D_off_button()
 
         self.update_model_label()
         self.update_status_label()
 
-    def update_status_label(self):
-        self.status_string.set("Status: %s" % (self._projector.get_power()))
+    def update_status_label(self, text=None):
+        self.status_string.set(("Power: %s | 3D: %s" % (self._projector.get_power(), self._projector.get_3D_status())) if text is None else text)
 
     def add_status_label(self):
         self.status_string = tk.StringVar()
@@ -55,19 +59,21 @@ class ProjectorComponent(tk.Frame):
         self._projector.power_off()
         self.update_status_label()
 
-    def on_3d_enable_handler(self):
-        self._projector.enable_3d()
+    def on_3D_enable_handler(self):
+        self._projector.enable_3D()
+        self.update_status_label()
 
-    def on_3d_disable_handler(self):
-        self._projector.disable_3d()
+    def on_3D_disable_handler(self):
+        self._projector.disable_3D()
+        self.update_status_label()
 
-    def add_3d_on_button(self):
-        on_3d = tk.Button(self.action_panel, text="3D ON", fg="black", command=self.on_3d_enable_handler)
-        on_3d.pack(side="right")
+    def add_3D_on_button(self):
+        on_3D = tk.Button(self.action_panel, text="3D ON", fg="black", command=self.on_3D_enable_handler)
+        on_3D.pack(side="right")
 
-    def add_3d_off_button(self):
-        off_3d = tk.Button(self.action_panel, text="3D OFF", fg="black", command=self.on_3d_disable_handler)
-        off_3d.pack(side="right")
+    def add_3D_off_button(self):
+        off_3D = tk.Button(self.action_panel, text="3D OFF", fg="black", command=self.on_3D_disable_handler)
+        off_3D.pack(side="right")
 
     def add_power_on_button(self):
         self.power_on = tk.Button(self.action_panel, text="ON", fg="black", command=self.power_on_handler)
@@ -104,8 +110,8 @@ class Application(tk.Frame):
         self.add_list_button()
         self.add_all_action_button("Power On All", "power_on_handler")
         self.add_all_action_button("Power Off All", "power_off_handler")
-        self.add_all_action_button("3D On All", "on_3d_enable_handler")
-        self.add_all_action_button("3D Off All", "on_3d_disable_handler")
+        self.add_all_action_button("3D On All", "on_3D_enable_handler")
+        self.add_all_action_button("3D Off All", "on_3D_disable_handler")
         self.add_all_action_button("Update All", "update_status_label")
 
         if not master is None:
@@ -116,7 +122,7 @@ class Application(tk.Frame):
             self.add_projector_component(port_name)
 
     def add_projector_component(self, port_name=None):
-        projector_frame = ProjectorComponent(self.projector_component_panel, projector=Projector(port_name))
+        projector_frame = ProjectorComponent(self.projector_component_panel, projector_port=port_name)
         projector_frame.grid(row=len(self._projectors), padx=10, pady=5)
         self._projectors.append(projector_frame)
 
