@@ -28,7 +28,7 @@ class Projector:
         else:
             self._port = serial.Serial(portName, baud_rate, timeout=timeout, **kwargs)
             self._model = self.get_model_name()
-            if self._model is '':
+            if self._model == '':
                 logging.debug("Cannot get model name. Unset the port")
                 self._port = None
 
@@ -50,7 +50,7 @@ class Projector:
         logging.debug("data available: %d" % self._port.inWaiting())
         _r = self._port.read()
         logging.debug('serial read: %s' % _r)
-        while not _r is b'':
+        while not _r == b'':
             result += _r
             _r = self._port.read()
             logging.debug('serial read: %s' % _r)
@@ -104,7 +104,7 @@ class Projector:
 
     ''' since some models need time to fetch this result, better to wait up to 8 seconds '''
     def get_model_name(self):
-        if self._model is '':
+        if self._model == '':
             self._model = self.get_attr('modelname', wait=8)
             time.sleep(1)
         return self._model
@@ -175,9 +175,11 @@ class Config:
                     self.num_of_port = int(line.replace('num_of_port=', ''))
 
                 elif line.startswith('user='):
-                    user = line.replace('user=', '')
-                    self.role = '_admin' if user is '_ims' else 'user'
+                    user = line.replace('user=', '').replace('\n', '')
+                    logging.debug("User: %s, is admin ? %s" % (user, user == '_ims'))
+                    self.role = '_admin' if user == '_ims' else 'user'
             logging.debug("num_of_port: %d" % self.num_of_port)
             logging.debug("ports: %s" % self.ports)
+
     def is_admin(self):
-        return self.role is '_admin'
+        return self.role == '_admin'
