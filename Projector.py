@@ -28,6 +28,10 @@ class Projector:
         else:
             self._port = serial.Serial(portName, baud_rate, timeout=timeout, **kwargs)
             self._model = self.get_model_name()
+            if self._model is '':
+                logging.debug("Cannot get model name. Unset the port")
+                self._port = None
+
 
     @port_must_initialized
     def close(self):
@@ -41,7 +45,9 @@ class Projector:
 
     @port_must_initialized
     def read_command_result(self):
+        time.sleep(0.5)
         result = b''
+        logging.debug("data available: %d" % self._port.inWaiting())
         _r = self._port.read()
         logging.debug('serial read: %s' % _r)
         while not _r is b'':
@@ -51,8 +57,10 @@ class Projector:
         result = result.decode()
         logging.debug("serial result: %s" % result)
         try:
-            if '#\r' in result:
-                result = result[result.index('#\r') + 2 if '#\r' in result else 0:]
+            if '?' in result:
+                result = result[result.index('?') + 1:]
+            elif '#\r' in result:
+                result = result[result.index('#\r') + 2:]
             else:
                 result = result[result.index('\n') + 1 if '\n' in result else 0:]
         except IndexError:
