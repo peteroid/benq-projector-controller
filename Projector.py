@@ -156,8 +156,9 @@ class Projector:
         return self._port
 
 class Config:
-    num_pf_port = 0
+    num_of_port = 0
     ports = []
+    role = ''
 
     def __init__(self, config_file_name='./config.ini'):
         with open(config_file_name) as config_file:
@@ -171,6 +172,12 @@ class Config:
                         .split(',')
 
                 elif line.startswith('num_of_port='):
-                    self.num_pf_port = int(line.replace('num_of_port=', ''))
-            logging.debug("num_of_port: %d" % self.num_pf_port)
+                    self.num_of_port = int(line.replace('num_of_port=', ''))
+
+                elif line.startswith('user='):
+                    user = line.replace('user=', '')
+                    self.role = '_admin' if user is '_ims' else 'user'
+            logging.debug("num_of_port: %d" % self.num_of_port)
             logging.debug("ports: %s" % self.ports)
+    def is_admin(self):
+        return self.role is '_admin'

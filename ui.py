@@ -27,8 +27,10 @@ class ProjectorComponent(tk.Frame):
 
         self.add_power_on_button()
         self.add_power_off_button()
-        self.add_3D_on_button()
-        self.add_3D_off_button()
+
+        if config.is_admin():
+            self.add_3D_on_button()
+            self.add_3D_off_button()
 
         self.update_model_label()
         self.update_status_label()
@@ -107,12 +109,15 @@ class Application(tk.Frame):
 
         self.add_quit_button()
         self.add_start_button()
-        self.add_list_button()
         self.add_all_action_button("Power On All", "power_on_handler")
         self.add_all_action_button("Power Off All", "power_off_handler")
-        self.add_all_action_button("3D On All", "on_3D_enable_handler")
-        self.add_all_action_button("3D Off All", "on_3D_disable_handler")
         self.add_all_action_button("Update All", "update_status_label")
+
+        if config.is_admin():
+            self.add_list_button()
+            self.add_all_action_button("3D On All", "on_3D_enable_handler")
+            self.add_all_action_button("3D Off All", "on_3D_disable_handler")
+
 
         if not master is None:
             master.protocol('WM_DELETE_WINDOW', self.on_application_quit)
