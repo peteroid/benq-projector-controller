@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 public class ProjectorPort {
 
 	public const int PROJECTOR_BAUD_RATE = 115200;
-	public const int PROJECTOR_READ_DELAY_MS = 100;
+	public const int PROJECTOR_READ_DELAY_MS = 250;
     public const int PROJECTOR_READ_TIMEOUT_MS = 250;
     public const int PROJECTOR_WRITE_TIMEOUT_MS = 250;
     public const string PROJECTOR_NEWLINE = "\n";
@@ -74,7 +74,7 @@ public class ProjectorPort {
 		string result = ReadCommand ();
 		Debug.Log ("read: " + result);
 
-		if (result.Contains ("?#")) {
+		if (result.Contains ("?#") || result.Contains("=#")) {
 			result = result.Substring (result.IndexOf ('?') + 2);
 		}
 
@@ -87,9 +87,9 @@ public class ProjectorPort {
 
         string lowerResult = result.ToLower();
         if (lowerResult.Contains("block item")) {
-            result = "#Unknown#";
+            result = "#Unkwn#";
         } else if (lowerResult.Contains("illegal format")) {
-            result = "#Cmd Fail#";
+            result = "#CmdFail#";
         }
 		return result;
 	}
@@ -125,8 +125,8 @@ public class ProjectorPort {
 	}
 
 	public string GetModelName () {
-		if (modelName == "")
-			modelName = GetAttr ("modelname", 6000);
+		if (modelName == "" || (modelName.StartsWith("#") && modelName.EndsWith("#")))
+			modelName = GetAttr ("modelname", 8000);
 		return modelName;
 	}
 

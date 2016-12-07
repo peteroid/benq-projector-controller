@@ -15,7 +15,7 @@ public class ProjectorScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         inputStatus.text = portName;
-	}
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -23,9 +23,12 @@ public class ProjectorScript : MonoBehaviour {
 	}
 
 	public void Init () {
+        portName = inputStatus.text;
         pPort = new ProjectorPort(inputStatus.text);
         pPort.Open ();
 		Debug.Log (pPort.IsPortInitialized);
+
+        inputStatus.text = portName + (pPort.IsPortInitialized ? "" : " not") + " connected";
 	}
 
 	public void End () {
