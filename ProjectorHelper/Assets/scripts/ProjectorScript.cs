@@ -7,15 +7,14 @@ public class ProjectorScript : MonoBehaviour {
 
 	public Button btnPowerOn;
 	public Button btnPowerOff;
-	public Text txStatus;
+    public InputField inputStatus;
 
 	public string portName;
-
 	private ProjectorPort pPort;
 
 	// Use this for initialization
 	void Start () {
-		pPort = new ProjectorPort (portName);
+        inputStatus.text = portName;
 	}
 	
 	// Update is called once per frame
@@ -24,13 +23,14 @@ public class ProjectorScript : MonoBehaviour {
 	}
 
 	public void Init () {
-		pPort.Open ();
+        pPort = new ProjectorPort(inputStatus.text);
+        pPort.Open ();
 		Debug.Log (pPort.IsPortInitialized);
-//		txStatus.text = pPort.GetModelName ();
 	}
 
 	public void End () {
-		pPort.Close ();
+        if (pPort != null)
+		    pPort.Close ();
 	}
 
 	public void PowerOnHandler () {
@@ -41,7 +41,15 @@ public class ProjectorScript : MonoBehaviour {
 		pPort.PowerOff ();
 	}
 
+    public void ThreeDOnHandler() {
+        pPort._3DEnable();
+    }
+
+    public void ThreeDOffHandler () {
+        pPort._3DDisable();
+    }
+
 	public void UpdateHandler () {
-		txStatus.text = String.Format("{0} : {1}", pPort.GetModelName (), pPort.GetPower ());
-	}
+        inputStatus.text = String.Format("{0} : {1}", pPort.GetModelName(), pPort.GetPower());
+    }
 }
