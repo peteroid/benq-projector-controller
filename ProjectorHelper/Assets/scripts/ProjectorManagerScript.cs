@@ -13,13 +13,16 @@ public class ProjectorManagerScript : MonoBehaviour {
 
     public GameObject commandsBlock;
     public Button commandTemplate;
+    public ProjectorScript projectorObject;
     public List<string> projectorCommands;
-    public List<ProjectorScript> projectors;
+    public List<string> projectorPortNames;
 
     public static string[] availablePortNames;
 
-	// Use this for initialization
-	void Start () {
+    private List<ProjectorScript> projectors;
+
+    // Use this for initialization
+    void Start () {
         ProjectorManagerScript.availablePortNames = SerialPort.GetPortNames();
         string portNamesStr = "Found ports: ";
         
@@ -28,6 +31,17 @@ public class ProjectorManagerScript : MonoBehaviour {
         }
 
         Debug.Log(portNamesStr);
+
+        Debug.Log("Create Projector ports");
+        projectors = new List<ProjectorScript>();
+        foreach (string portName in projectorPortNames) {
+            ProjectorScript p = Instantiate<ProjectorScript>(projectorObject);
+            p.SetPortName(portName);
+            p.transform.SetParent(projectorObject.transform.parent);
+            p.transform.localScale = Vector3.one;
+            projectors.Add(p);
+        }
+        projectorObject.gameObject.SetActive(false);
 
         Debug.Log("Create command blocks");
         foreach (string cmd in projectorCommands) {
@@ -55,7 +69,10 @@ public class ProjectorManagerScript : MonoBehaviour {
 
     private void InvokeProjectors (string method) {
         foreach (ProjectorScript projector in projectors) {
-            projector.Invoke(method, 0);
+            if (method.Contains("IE_"))
+                projector.StartCoroutine(method);
+            else
+                projector.Invoke(method, 0);
         }
     }
 

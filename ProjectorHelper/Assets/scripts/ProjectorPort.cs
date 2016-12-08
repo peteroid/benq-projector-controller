@@ -20,11 +20,13 @@ public class ProjectorPort {
 	private const string PROJECTOR_ATTR_PATTERN = @"=((?:(?!\?).)*)#";
 
     public bool isOSWindows = SystemInfo.operatingSystem.ToLower().Contains("windows");
+    public bool isBusy = false;
 
     private string portName, modelName = "";
 	private bool isInitialized = false;
 	private Regex attrRegex = new Regex (PROJECTOR_ATTR_PATTERN);
 	private SerialPort _port;
+    //private MonoBehaviour _parent;
 
 	// getter / setter
 	public bool IsPortInitialized {
@@ -34,7 +36,9 @@ public class ProjectorPort {
 	}
 
 	public ProjectorPort (string portName) {
-		this.portName = portName;
+        //_parent = parent;
+
+        this.portName = portName;
 		_port = new SerialPort ((isOSWindows ? @"\\.\" : "") + portName, PROJECTOR_BAUD_RATE);
         _port.ReadTimeout = PROJECTOR_READ_TIMEOUT_MS;
         _port.WriteTimeout = PROJECTOR_WRITE_TIMEOUT_MS;
@@ -65,10 +69,19 @@ public class ProjectorPort {
         }
 	}
 
-	// TODO
-	private string GetAttr (string attr, int delayMs = PROJECTOR_READ_DELAY_MS) {
-		Debug.Log ("get: " + attr);
+    //private IEnumerator _GetAttr (int delayMS, System.Action<string> cb) {
+    //    yield return new WaitForSeconds(0.1f);
 
+    //    cb("done");
+    //}
+
+    private string GetAttr(string attr, int delayMs = PROJECTOR_READ_DELAY_MS) {
+        Debug.Log ("get: " + attr);
+
+        //_parent.StartCoroutine(_GetAttr(delayMs, (_result) => {
+            
+        //}));
+        
 		WriteCommand (attr + "=?");
 		Thread.Sleep (delayMs);
 		string result = ReadCommand ();

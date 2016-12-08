@@ -31,10 +31,23 @@ public class ProjectorScript : MonoBehaviour {
         inputStatus.text = portName + (pPort.IsPortInitialized ? "" : " not") + " connected";
 	}
 
+    public void SetPortName (string portName) {
+        this.portName = portName;
+        inputStatus.text = portName;
+    }
+
 	public void End () {
         if (pPort != null)
 		    pPort.Close ();
 	}
+
+    IEnumerator IE_PowerAnd3DOnHandler () {
+        Debug.Log("Async power + 3d");
+        pPort.PowerOn();
+        yield return new WaitForSeconds(60f);
+        Debug.Log("Async 3d");
+        pPort._3DEnable();
+    }
 
 	public void PowerOnHandler () {
 		pPort.PowerOn ();
