@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using SystemD = System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO.Ports;
@@ -69,6 +70,10 @@ public class ProjectorManagerScript : MonoBehaviour {
 	public void TerminateProjectors () {
         InvokeProjectors("End");
 	}
+
+    public void ShutdownSystem () {
+        SystemD.Process.Start("shutdown", "/s /t 0");
+    }
 
 	void OnApplicationQuit() {
 		Debug.Log ("Quit");

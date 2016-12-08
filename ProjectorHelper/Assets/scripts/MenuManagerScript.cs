@@ -9,6 +9,9 @@ public class MenuManagerScript : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+        foreach (GameObject m in menus) {
+            m.SetActive(true);
+        }
         GoToMenu(defaultMenuIndex);
     }
 	
@@ -17,14 +20,21 @@ public class MenuManagerScript : MonoBehaviour {
 	
 	}
 
-    private void SetMenusActive (bool isActive) {
-        foreach (GameObject m in menus) {
-            m.SetActive(isActive);
+    private void SetMenusActive (bool isActive, int except = -1) {
+        for (int i = 0; i < menus.Count; i++) {
+            GameObject m = menus[i];
+            //m.SetActive(isActive);
+            //m.GetComponent<MeshRenderer>().enabled = isActive;
+            m.transform.localScale = isActive ? Vector3.one : Vector3.zero;
+        }
+
+        if (except >= 0) {
+            menus[except].transform.localScale = Vector3.one;
         }
     }
 
     public void GoToMenu (int index) {
-        SetMenusActive(false);
-        menus[index].SetActive(true);
+        SetMenusActive(false, index);
+        Debug.Log("show: " + index);
     }
 }
