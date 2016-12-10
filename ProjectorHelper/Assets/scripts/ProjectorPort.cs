@@ -41,6 +41,12 @@ public class ProjectorPort {
         }
     }
 
+    public bool IsWorking {
+        get {
+            return isInitialized && isSupported;
+        }
+    }
+
     public ProjectorPort (string portName) {
         //_parent = parent;
 

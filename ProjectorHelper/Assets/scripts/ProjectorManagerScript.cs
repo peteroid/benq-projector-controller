@@ -72,6 +72,7 @@ public class ProjectorManagerScript : MonoBehaviour {
 
     private void InvokeProjectors (string method) {
         foreach (ProjectorScript projector in projectors) {
+            if (projector == null) continue;
             if (method.Contains("IE_"))
                 projector.StartCoroutine(method);
             else

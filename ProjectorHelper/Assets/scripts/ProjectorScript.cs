@@ -10,7 +10,7 @@ public class ProjectorScript : MonoBehaviour {
     public InputField inputStatus;
 
 	public string portName;
-	private ProjectorPort pPort;
+    private ProjectorPort pPort;
 
 	// Use this for initialization
 	void Start () {
@@ -29,7 +29,7 @@ public class ProjectorScript : MonoBehaviour {
         pPort.Open ();
 		Debug.Log (pPort.IsPortInitialized);
 
-        inputStatus.text = portName + (pPort.IsPortInitialized ? "" : " not") + " connected";
+        inputStatus.text = portName + (pPort.IsWorking ? "" : " not") + " connected";
 	}
 
     public void SetPortName (string portName) {
