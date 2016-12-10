@@ -126,7 +126,7 @@ public class ProjectorPort {
 			isInitialized = true;
 
             Debug.Log("Test the projector");
-            isSupported = GetPower(500) != "";
+            isSupported = GetPower(500) != "" || GetPower(500) != "" || GetPower(500) != "";
         } catch (IOException e) {
 			isInitialized = false;
 			Debug.LogError (e.Message);

@@ -387,10 +387,10 @@ MonoBehaviour:
   - On;IE_PowerAnd3DOnHandler
   - Off;PowerOffHandler
   projectorPortNames:
-  - COM18
-  - COM19
-  - COM20
-  - COM21
+  - 
+  - 
+  - 
+  - 
   portNameDetectPattern: .*
 --- !u!1 &449010362
 GameObject:

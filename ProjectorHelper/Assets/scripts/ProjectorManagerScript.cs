@@ -16,6 +16,7 @@ public class ProjectorManagerScript : MonoBehaviour {
     public List<string> projectorPortNames;
     public string portNameDetectPattern;
 
+    public const string PREF_DEFAULT_PORT_NAMES_KEY = "_pref_default_port_names";
     public static string[] availablePortNames;
 
     private List<ProjectorScript> projectors;
@@ -28,13 +29,11 @@ public class ProjectorManagerScript : MonoBehaviour {
         portNameDetectRegex = new Regex(portNameDetectPattern == "" ? ".*" : portNameDetectPattern);
 
         string portNamesStr = "Found ports: ";
-        
         foreach (string portName in ProjectorManagerScript.availablePortNames) {
             portNamesStr += portName + ", ";
         }
-
         Debug.Log(portNamesStr);
-
+        
         Debug.Log("Create Projector ports");
         projectors = new List<ProjectorScript>();
         foreach (string portName in projectorPortNames) {
@@ -45,6 +44,13 @@ public class ProjectorManagerScript : MonoBehaviour {
             projectors.Add(p);
         }
         projectorObject.gameObject.SetActive(false);
+
+        string defaultPortNamesStr = PlayerPrefs.GetString(PREF_DEFAULT_PORT_NAMES_KEY);
+        Debug.Log("default ports: " + defaultPortNamesStr);
+        string[] defaultPortNames = defaultPortNamesStr.Split(',');
+        for (int i = 0; i < defaultPortNames.Length; i++) {
+            projectors[i].SetPortName(defaultPortNames[i]);
+        }
 
         Debug.Log("Create command blocks");
         foreach (string cmd in projectorCommands) {
@@ -69,6 +75,12 @@ public class ProjectorManagerScript : MonoBehaviour {
 	void Update () {
 	
 	}
+
+    private void LoopProjectors (System.Action<ProjectorScript, int> cb) {
+        for (int i = 0; i < projectors.Count; i++) {
+            cb(projectors[i], i);
+        }
+    }
 
     private void InvokeProjectors (string method) {
         foreach (ProjectorScript projector in projectors) {
@@ -105,6 +117,14 @@ public class ProjectorManagerScript : MonoBehaviour {
 
 	public void ConnectProjectors () {
         InvokeProjectors("Init");
+        string[] names = new string[projectors.Count];
+        LoopProjectors((projector, index) => {
+            names[index] = projector.inputStatus.text;
+        });
+        // save the port names
+        string namesStr = string.Join(",", names);
+        Debug.Log("Saving: " + namesStr);
+        PlayerPrefs.SetString(PREF_DEFAULT_PORT_NAMES_KEY, namesStr);
 	}
 
 	public void TerminateProjectors () {
