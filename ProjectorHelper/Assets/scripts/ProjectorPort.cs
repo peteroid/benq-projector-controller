@@ -23,7 +23,7 @@ public class ProjectorPort {
     public bool isBusy = false;
 
     private string portName, modelName = "";
-	private bool isInitialized = false;
+    private bool isInitialized = false, isSupported = false;
 	private Regex attrRegex = new Regex (PROJECTOR_ATTR_PATTERN);
 	private SerialPort _port;
     //private MonoBehaviour _parent;
@@ -35,7 +35,13 @@ public class ProjectorPort {
 		}
 	}
 
-	public ProjectorPort (string portName) {
+    public bool IsPortSupported {
+        get {
+            return isSupported;
+        }
+    }
+
+    public ProjectorPort (string portName) {
         //_parent = parent;
 
         this.portName = portName;
@@ -60,6 +66,7 @@ public class ProjectorPort {
                 try {
                     readStr += _port.ReadLine();
                 } catch (TimeoutException e) {
+                    Debug.Log(e.Message);
                     isReading = false;
                 }
             }
@@ -111,6 +118,9 @@ public class ProjectorPort {
 		try {
 			_port.Open ();
 			isInitialized = true;
+
+            Debug.Log("Test the projector");
+            isSupported = GetPower(500) != "";
         } catch (IOException e) {
 			isInitialized = false;
 			Debug.LogError (e.Message);
@@ -129,8 +139,8 @@ public class ProjectorPort {
 		ReadCommand ();
 	}
 
-	public string GetPower () {
-		return GetAttr ("pow");
+	public string GetPower (int delayMs = PROJECTOR_READ_DELAY_MS) {
+		return GetAttr ("pow", delayMs);
 	}
 
 	public string GetSource () {

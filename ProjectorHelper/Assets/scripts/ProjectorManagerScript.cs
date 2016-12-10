@@ -5,9 +5,7 @@ using SystemD = System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO.Ports;
-
-[System.Serializable]
-public class CommandOnClickEvent : UnityEvent<string> {}
+using System.Text.RegularExpressions;
 
 public class ProjectorManagerScript : MonoBehaviour {
 
@@ -16,14 +14,19 @@ public class ProjectorManagerScript : MonoBehaviour {
     public ProjectorScript projectorObject;
     public List<string> projectorCommands;
     public List<string> projectorPortNames;
+    public string portNameDetectPattern;
 
     public static string[] availablePortNames;
 
     private List<ProjectorScript> projectors;
+    private Regex portNameDetectRegex;
 
     // Use this for initialization
     void Start () {
         ProjectorManagerScript.availablePortNames = SerialPort.GetPortNames();
+
+        portNameDetectRegex = new Regex(portNameDetectPattern == "" ? ".*" : portNameDetectPattern);
+
         string portNamesStr = "Found ports: ";
         
         foreach (string portName in ProjectorManagerScript.availablePortNames) {
@@ -73,6 +76,25 @@ public class ProjectorManagerScript : MonoBehaviour {
                 projector.StartCoroutine(method);
             else
                 projector.Invoke(method, 0);
+        }
+    }
+
+    public void DetectProjectors () {
+        int supportedProjectorCount = 0;
+        for (int i = 0; i < ProjectorManagerScript.availablePortNames.Length; i++) {
+            string portName = ProjectorManagerScript.availablePortNames[i];
+            if (!portNameDetectRegex.Match(portName).Success) continue;
+            ProjectorPort port = new ProjectorPort(portName);
+            port.Open();
+            Debug.Log(portName + " is " + (port.IsPortSupported ? "good" : "bad"));
+            if (port.IsPortSupported) {
+                projectors[supportedProjectorCount++].inputStatus.text = portName;
+            }
+            port.Close();
+        }
+
+        for (int i = supportedProjectorCount; i < projectors.Count; i++) {
+            projectors[i].inputStatus.text = "";
         }
     }
 

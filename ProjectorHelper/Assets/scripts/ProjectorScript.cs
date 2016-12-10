@@ -24,7 +24,8 @@ public class ProjectorScript : MonoBehaviour {
 
 	public void Init () {
         portName = inputStatus.text;
-        pPort = new ProjectorPort(inputStatus.text);
+        if (portName == "") return;
+        pPort = new ProjectorPort(portName);
         pPort.Open ();
 		Debug.Log (pPort.IsPortInitialized);
 
