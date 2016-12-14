@@ -66,8 +66,9 @@ public class ProjectorManagerScript : MonoBehaviour {
 
         Debug.Log("Create command blocks");
         foreach (string cmd in projectorCommands) {
-            string btnMethod = cmd.Substring(cmd.IndexOf(";") + 1);
-            string btnName = cmd.Substring(0, cmd.IndexOf(";"));
+            string[] cmdElements = cmd.Split(';');
+            string btnMethod = cmdElements[1];
+            string btnName = cmdElements[0];
             //Debug.Log(btnName + " : " + btnMethod);
 
             Button b = Instantiate<Button>(commandTemplate);
@@ -81,8 +82,6 @@ public class ProjectorManagerScript : MonoBehaviour {
                 InvokeProjectors(btnMethod);
             });
         }
-
-        
     }
 	
 	// Update is called once per frame

@@ -12,7 +12,7 @@ public class ProjectorScript : MonoBehaviour {
 
 	public string portName;
     private ProjectorPort pPort;
-    private string modelName, powerState, threeDState;
+    private string modelName;
 
     public bool isProjectorInit {
         get {
