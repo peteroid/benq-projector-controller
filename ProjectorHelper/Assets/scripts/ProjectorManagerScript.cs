@@ -17,6 +17,8 @@ public class ProjectorManagerScript : MonoBehaviour {
     public string portNameDetectPattern;
 
     public const string PREF_DEFAULT_PORT_NAMES_KEY = "_pref_default_port_names";
+    public const string PROJECTOR_NOT_CONNECTED_STRING = "Not connected";
+    public const string PROJECTOR_NOT_DETECTED_STRING = "Can't detect this port. Please check connection and detect again.";
     public static string[] availablePortNames;
 
     private List<ProjectorScript> projectors;
@@ -24,6 +26,8 @@ public class ProjectorManagerScript : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+        
+
         ProjectorManagerScript.availablePortNames = SerialPort.GetPortNames();
 
         portNameDetectRegex = new Regex(portNameDetectPattern == "" ? ".*" : portNameDetectPattern);
@@ -44,12 +48,17 @@ public class ProjectorManagerScript : MonoBehaviour {
             projectors.Add(p);
         }
         projectorObject.gameObject.SetActive(false);
-
+        ////reset names
+        //SavePortNames();
         string defaultPortNamesStr = PlayerPrefs.GetString(PREF_DEFAULT_PORT_NAMES_KEY);
         Debug.Log("default ports: " + defaultPortNamesStr);
         string[] defaultPortNames = defaultPortNamesStr.Split(',');
         for (int i = 0; i < defaultPortNames.Length; i++) {
-            projectors[i].SetPortName(defaultPortNames[i]);
+            if (defaultPortNames[i] == "") {
+                projectors[i].inputStatus.text = PROJECTOR_NOT_DETECTED_STRING;
+            } else {
+                projectors[i].SetPortName(defaultPortNames[i]);
+            }
         }
 
         Debug.Log("Create command blocks");
@@ -69,6 +78,8 @@ public class ProjectorManagerScript : MonoBehaviour {
                 InvokeProjectors(btnMethod);
             });
         }
+
+        
     }
 	
 	// Update is called once per frame
@@ -101,14 +112,16 @@ public class ProjectorManagerScript : MonoBehaviour {
             port.Open();
             Debug.Log(portName + " is " + (port.IsPortSupported ? "good" : "bad"));
             if (port.IsPortSupported) {
-                projectors[supportedProjectorCount++].inputStatus.text = portName;
+                projectors[supportedProjectorCount++].SetPortName(portName);
             }
             port.Close();
         }
 
         for (int i = supportedProjectorCount; i < projectors.Count; i++) {
-            projectors[i].inputStatus.text = "";
+            projectors[i].inputStatus.text = PROJECTOR_NOT_DETECTED_STRING;
         }
+
+        SavePortNames();
     }
 
     public void UpdateProjectors () {
@@ -117,19 +130,22 @@ public class ProjectorManagerScript : MonoBehaviour {
 
 	public void ConnectProjectors () {
         InvokeProjectors("Init");
-        string[] names = new string[projectors.Count];
-        LoopProjectors((projector, index) => {
-            names[index] = projector.inputStatus.text;
-        });
-        // save the port names
-        string namesStr = string.Join(",", names);
-        Debug.Log("Saving: " + namesStr);
-        PlayerPrefs.SetString(PREF_DEFAULT_PORT_NAMES_KEY, namesStr);
 	}
 
 	public void TerminateProjectors () {
         InvokeProjectors("End");
 	}
+
+    private void SavePortNames () {
+        string[] names = new string[projectors.Count];
+        LoopProjectors((projector, index) => {
+            names[index] = projector.portName;
+        });
+        // save the port names
+        string namesStr = string.Join(",", names);
+        Debug.Log("Saving: " + namesStr);
+        PlayerPrefs.SetString(PREF_DEFAULT_PORT_NAMES_KEY, namesStr);
+    }
 
     public void ShutdownSystem () {
         SystemD.Process.Start("shutdown", "/s /t 0");
