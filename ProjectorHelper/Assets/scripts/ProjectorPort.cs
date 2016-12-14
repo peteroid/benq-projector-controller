@@ -14,10 +14,11 @@ public class ProjectorPort {
     public const int PROJECTOR_WRITE_TIMEOUT_MS = 250;
     public const string PROJECTOR_NEWLINE = "\n";
 
-    private const char PROJECTOR_CR_CHAR = '\r';
+    private const char PROJECTOR_CR_CHAR = '\r'; 
 	private const char PROJECTOR_NL_CHAR = '\n';
-	private static char[] PROJECTOR_TRIM_CHARS = new char[]{PROJECTOR_CR_CHAR, PROJECTOR_NL_CHAR, ' '};
-	private const string PROJECTOR_ATTR_PATTERN = @"=((?:(?!\?).)*)#";
+	private static char[] PROJECTOR_TRIM_CHARS = new char[] {PROJECTOR_CR_CHAR, PROJECTOR_NL_CHAR, ' '};
+    private static string[] PROJECTOR_SPLIT_DELIMITERS = new string[] { "?#", "=#", "=?", "?\r", "?\n" };
+    private const string PROJECTOR_ATTR_PATTERN = @"=((?:(?!\?).)*)#";
 
     public bool isOSWindows = SystemInfo.operatingSystem.ToLower().Contains("windows");
     public bool isBusy = false;
@@ -91,9 +92,7 @@ public class ProjectorPort {
         string result = ReadCommand();
         Debug.Log("read: " + result);
 
-        if (result.Contains("?#") || result.Contains("=#") || result.Contains("=?")) {
-            result = result.Substring(result.IndexOf('?') + 2);
-        }
+        result = SubstringByAny(result, PROJECTOR_SPLIT_DELIMITERS);
 
         Match match = attrRegex.Match(result);
         if (match.Success) {
@@ -111,6 +110,15 @@ public class ProjectorPort {
         return result;
     }
 
+    private string SubstringByAny(string str, string[] delimiters) {
+        foreach (string d in delimiters) {
+            if (str.Contains(d)) {
+                return str.Substring(str.IndexOf(d) + d.Length);
+            }
+        }
+        return str;
+    }
+
     private IEnumerator GetAttrAsync(string attr, Action<string> cb, int delayMs = PROJECTOR_READ_DELAY_MS) {
         BeforeGetAttr(attr);
         yield return new WaitForSeconds(delayMs / 1000f);
@@ -123,13 +131,31 @@ public class ProjectorPort {
         return AfterGetAttr();
 	}
 
+    private bool TestIfPortSupported () {
+        string read = "";
+        try {
+            _port.DiscardInBuffer();
+            _port.DiscardOutBuffer();
+            _port.Write("" + ((char)13));
+            
+            while (true) {
+                read += _port.ReadChar();
+            }
+            
+        } catch (Exception e) {
+            Debug.Log(e.Message);
+        }
+
+        return read != "";
+    }
+
 	public void Open () {
 		try {
 			_port.Open ();
 			isInitialized = true;
 
             Debug.Log("Test the projector");
-            isSupported = GetPower(500) != "" || GetPower(500) != "" || GetPower(500) != "";
+            isSupported = TestIfPortSupported();
         } catch (IOException e) {
 			isInitialized = false;
 			Debug.LogError (e.Message);

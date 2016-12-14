@@ -17,7 +17,16 @@ public class MenuManagerScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-	
+        // hold down space
+        if (Input.GetKey(KeyCode.Space)) {
+            if (Input.GetKeyDown(KeyCode.Alpha1)) {
+                GoToMenu(1);
+            } else if (Input.GetKeyDown(KeyCode.Alpha2)) {
+                GoToMenu(2);
+            } else if (Input.GetKeyDown(KeyCode.BackQuote)) {
+                GoToMenu(0);
+            }
+        }	    
 	}
 
     private void SetMenusActive (bool isActive, int except = -1) {

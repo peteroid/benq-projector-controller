@@ -15,10 +15,13 @@ public class ProjectorManagerScript : MonoBehaviour {
     public List<string> projectorCommands;
     public List<string> projectorPortNames;
     public string portNameDetectPattern;
+    public InputField logText;
 
     public const string PREF_DEFAULT_PORT_NAMES_KEY = "_pref_default_port_names";
     public const string PROJECTOR_NOT_CONNECTED_STRING = "Not connected";
-    public const string PROJECTOR_NOT_DETECTED_STRING = "Can't detect this port. Please check connection and detect again.";
+    public const string PROJECTOR_NOT_DETECTED_STRING = "Cannot detect this port. Please check connection and detect again.";
+    public const string PROJECTOR_NOT_SAVED_STRING = "Cannot load this port. Please detect or input it.";
+    public static string[] PROJECTOR_ERROR_STRINGS = new string[] { PROJECTOR_NOT_DETECTED_STRING , PROJECTOR_NOT_SAVED_STRING };
     public static string[] availablePortNames;
 
     private List<ProjectorScript> projectors;
@@ -26,8 +29,6 @@ public class ProjectorManagerScript : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        
-
         ProjectorManagerScript.availablePortNames = SerialPort.GetPortNames();
 
         portNameDetectRegex = new Regex(portNameDetectPattern == "" ? ".*" : portNameDetectPattern);
@@ -48,14 +49,16 @@ public class ProjectorManagerScript : MonoBehaviour {
             projectors.Add(p);
         }
         projectorObject.gameObject.SetActive(false);
+
         ////reset names
         //SavePortNames();
+
         string defaultPortNamesStr = PlayerPrefs.GetString(PREF_DEFAULT_PORT_NAMES_KEY);
         Debug.Log("default ports: " + defaultPortNamesStr);
         string[] defaultPortNames = defaultPortNamesStr.Split(',');
         for (int i = 0; i < defaultPortNames.Length; i++) {
             if (defaultPortNames[i] == "") {
-                projectors[i].inputStatus.text = PROJECTOR_NOT_DETECTED_STRING;
+                projectors[i].inputStatus.text = PROJECTOR_NOT_SAVED_STRING;
             } else {
                 projectors[i].SetPortName(defaultPortNames[i]);
             }
@@ -87,6 +90,19 @@ public class ProjectorManagerScript : MonoBehaviour {
 	
 	}
 
+    void OnEnable () {
+        Application.logMessageReceived += LogHanlder;
+    }
+
+    void OnDisable() {
+        Application.logMessageReceived -= LogHanlder;
+    }
+
+    private void LogHanlder (string message, string stackTrace, LogType type) {
+        logText.text += (message + "\n");
+        logText.caretPosition = logText.text.Length - 1;
+    }
+
     private void LoopProjectors (System.Action<ProjectorScript, int> cb) {
         for (int i = 0; i < projectors.Count; i++) {
             cb(projectors[i], i);
@@ -95,7 +111,7 @@ public class ProjectorManagerScript : MonoBehaviour {
 
     private void InvokeProjectors (string method, bool mustBeWorking = true) {
         foreach (ProjectorScript projector in projectors) {
-            if ((projector == null) && !projector.isProjectWorking) continue;
+            if (mustBeWorking && !projector.isProjectorWorking) continue;
             if (method.Contains("IE_"))
                 projector.StartCoroutine(method);
             else
@@ -124,16 +140,20 @@ public class ProjectorManagerScript : MonoBehaviour {
         SavePortNames();
     }
 
+    public void TurnOnProjects () {
+        InvokeProjectors("IE_PowerAnd3DOnHandler", false);
+    }
+
     public void UpdateProjectors () {
         InvokeProjectors("UpdateHandler");
     }
 
 	public void ConnectProjectors () {
-        InvokeProjectors("Init");
+        InvokeProjectors("Init", false);
 	}
 
 	public void TerminateProjectors () {
-        InvokeProjectors("End");
+        InvokeProjectors("PowerOffHandler");
 	}
 
     private void SavePortNames () {
