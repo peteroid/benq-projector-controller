@@ -82,34 +82,25 @@ public class ProjectorPort {
         }
 	}
 
-    //private IEnumerator _GetAttr (int delayMS, System.Action<string> cb) {
-    //    yield return new WaitForSeconds(0.1f);
+    private void BeforeGetAttr (string attr) {
+        Debug.Log("get: " + attr);
+        WriteCommand(attr + "=?");
+    }
 
-    //    cb("done");
-    //}
+    private string AfterGetAttr () {
+        string result = ReadCommand();
+        Debug.Log("read: " + result);
 
-    private string GetAttr(string attr, int delayMs = PROJECTOR_READ_DELAY_MS) {
-        Debug.Log ("get: " + attr);
+        if (result.Contains("?#") || result.Contains("=#") || result.Contains("=?")) {
+            result = result.Substring(result.IndexOf('?') + 2);
+        }
 
-        //_parent.StartCoroutine(_GetAttr(delayMs, (_result) => {
-            
-        //}));
-        
-		WriteCommand (attr + "=?");
-		Thread.Sleep (delayMs);
-		string result = ReadCommand ();
-		Debug.Log ("read: " + result);
-
-		if (result.Contains ("?#") || result.Contains("=#")) {
-			result = result.Substring (result.IndexOf ('?') + 2);
-		}
-
-		Match match = attrRegex.Match (result);
-		if (match.Success) {
-			result = match.Groups [match.Groups.Count - 1].Value;
-		} else {
-			result = result.Trim (PROJECTOR_TRIM_CHARS);
-		}
+        Match match = attrRegex.Match(result);
+        if (match.Success) {
+            result = match.Groups[match.Groups.Count - 1].Value;
+        } else {
+            result = result.Trim(PROJECTOR_TRIM_CHARS);
+        }
 
         string lowerResult = result.ToLower();
         if (lowerResult.Contains("block item")) {
@@ -117,7 +108,19 @@ public class ProjectorPort {
         } else if (lowerResult.Contains("illegal format")) {
             result = "#CmdFail#";
         }
-		return result;
+        return result;
+    }
+
+    private IEnumerator GetAttrAsync(string attr, Action<string> cb, int delayMs = PROJECTOR_READ_DELAY_MS) {
+        BeforeGetAttr(attr);
+        yield return new WaitForSeconds(delayMs / 1000f);
+        cb(AfterGetAttr());
+    }
+
+    private string GetAttr(string attr, int delayMs = PROJECTOR_READ_DELAY_MS) {
+        BeforeGetAttr(attr);
+		Thread.Sleep (delayMs);
+        return AfterGetAttr();
 	}
 
 	public void Open () {
@@ -152,6 +155,16 @@ public class ProjectorPort {
 	public string GetSource () {
 		return GetAttr ("sour");
 	}
+
+    public IEnumerator GetModelNameAsync (Action<string> cb) {
+        if (modelName == "" || (modelName.StartsWith("#") && modelName.EndsWith("#")))
+            yield return GetAttrAsync("modelname", (model) => {
+                modelName = model;
+                cb(modelName);
+            }, 8000);
+        else
+            cb(modelName);
+    }
 
 	public string GetModelName () {
 		if (modelName == "" || (modelName.StartsWith("#") && modelName.EndsWith("#")))

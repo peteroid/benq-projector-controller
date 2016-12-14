@@ -82,9 +82,9 @@ public class ProjectorManagerScript : MonoBehaviour {
         }
     }
 
-    private void InvokeProjectors (string method) {
+    private void InvokeProjectors (string method, bool mustBeWorking = true) {
         foreach (ProjectorScript projector in projectors) {
-            if (projector == null) continue;
+            if ((projector == null) && !projector.isProjectWorking) continue;
             if (method.Contains("IE_"))
                 projector.StartCoroutine(method);
             else

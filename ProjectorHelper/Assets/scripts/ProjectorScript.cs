@@ -11,6 +11,13 @@ public class ProjectorScript : MonoBehaviour {
 
 	public string portName;
     private ProjectorPort pPort;
+    private string modelName, powerState, threeDState;
+
+    public bool isProjectWorking {
+        get {
+            return pPort != null && pPort.IsWorking;
+        }
+    }
 
 	// Use this for initialization
 	void Start () {
@@ -66,7 +73,14 @@ public class ProjectorScript : MonoBehaviour {
         pPort._3DDisable();
     }
 
-	public void UpdateHandler () {
-        inputStatus.text = String.Format("{0} : {1}", pPort.GetModelName(), pPort.GetPower());
+    public void UpdateStatus () {
+        inputStatus.text = String.Format("{0} : {1}", modelName, pPort.GetPower());
+    }
+
+    public void UpdateHandler () {
+        StartCoroutine(pPort.GetModelNameAsync((modelName) => {
+            this.modelName = modelName;
+            UpdateStatus();
+        }));
     }
 }
