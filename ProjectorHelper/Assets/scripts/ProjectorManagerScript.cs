@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.Events;
 using SystemD = System.Diagnostics;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO.Ports;
@@ -21,6 +22,8 @@ public class ProjectorManagerScript : MonoBehaviour {
     public const string PROJECTOR_NOT_CONNECTED_STRING = "Not connected";
     public const string PROJECTOR_NOT_DETECTED_STRING = "Cannot detect this port. Please check connection and detect again.";
     public const string PROJECTOR_NOT_SAVED_STRING = "Cannot load this port. Please detect or input it.";
+    public const string PROJECTOR_ON_ONLY_TAG = "OnOnly";
+    public const string PROJECTOR_OFF_ONLY_TAG = "OffOnly";
     public static string[] PROJECTOR_ERROR_STRINGS = new string[] { PROJECTOR_NOT_DETECTED_STRING , PROJECTOR_NOT_SAVED_STRING };
     public static string[] availablePortNames;
 
@@ -83,6 +86,8 @@ public class ProjectorManagerScript : MonoBehaviour {
                 InvokeProjectors(btnMethod, mustBeWorking);
             });
         }
+
+        ToggleOnOrOffOnlyObjects(false);
     }
 	
 	// Update is called once per frame
@@ -103,7 +108,7 @@ public class ProjectorManagerScript : MonoBehaviour {
         logText.caretPosition = logText.text.Length - 1;
     }
 
-    private void LoopProjectors (System.Action<ProjectorScript, int> cb) {
+    private void LoopProjectors (Action<ProjectorScript, int> cb) {
         for (int i = 0; i < projectors.Count; i++) {
             cb(projectors[i], i);
         }
@@ -117,6 +122,25 @@ public class ProjectorManagerScript : MonoBehaviour {
             else
                 projector.Invoke(method, 0);
         }
+    }
+
+    private void LoopGameObjectsWithTag (string tag, Action<GameObject> cb) {
+        foreach (GameObject obj in GameObject.FindGameObjectsWithTag(tag)) cb(obj);
+    }
+
+    private void ToggleOnOrOffOnlyObjects (bool isOnOnly) {
+        LoopGameObjectsWithTag(PROJECTOR_OFF_ONLY_TAG, (gameObj) => {
+            Button btn = gameObj.GetComponent<Button>();
+            if (btn != null) {
+                btn.interactable = !isOnOnly;
+            }
+        });
+        LoopGameObjectsWithTag(PROJECTOR_ON_ONLY_TAG, (gameObj) => {
+            Button btn = gameObj.GetComponent<Button>();
+            if (btn != null) {
+                btn.interactable = isOnOnly;
+            }
+        });
     }
 
     public void DetectProjectors () {
@@ -148,8 +172,14 @@ public class ProjectorManagerScript : MonoBehaviour {
         InvokeProjectors("ThreeDOffHandler");
     }
 
-    public void TurnOnProjectors () {
+    private IEnumerator _TurnOnProjectors () {
         InvokeProjectors("IE_PowerAnd3DOnHandler", false);
+        yield return new WaitForSeconds(60);
+        ToggleOnOrOffOnlyObjects(true);
+    }
+
+    public void TurnOnProjectors () {
+        StartCoroutine("_TurnOnProjectors");        
     }
 
     public void UpdateProjectors () {
@@ -161,8 +191,9 @@ public class ProjectorManagerScript : MonoBehaviour {
 	}
 
 	public void TerminateProjectors () {
+        ToggleOnOrOffOnlyObjects(false);
         InvokeProjectors("PowerOffHandler");
-	}
+    }
 
     private void SavePortNames () {
         string[] names = new string[projectors.Count];
