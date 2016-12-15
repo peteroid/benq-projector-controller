@@ -69,6 +69,7 @@ public class ProjectorManagerScript : MonoBehaviour {
             string[] cmdElements = cmd.Split(';');
             string btnMethod = cmdElements[1];
             string btnName = cmdElements[0];
+            bool mustBeWorking = cmdElements.Length >= 3 ? (cmdElements[2] == "1") : true;
             //Debug.Log(btnName + " : " + btnMethod);
 
             Button b = Instantiate<Button>(commandTemplate);
@@ -79,7 +80,7 @@ public class ProjectorManagerScript : MonoBehaviour {
             t.text = btnName;
 
             b.onClick.AddListener(delegate {
-                InvokeProjectors(btnMethod);
+                InvokeProjectors(btnMethod, mustBeWorking);
             });
         }
     }
@@ -139,7 +140,15 @@ public class ProjectorManagerScript : MonoBehaviour {
         SavePortNames();
     }
 
-    public void TurnOnProjects () {
+    public void Turn3DProjectors () {
+        InvokeProjectors("ThreeDOnHandler");
+    }
+
+    public void Turn2DProjectors() {
+        InvokeProjectors("ThreeDOffHandler");
+    }
+
+    public void TurnOnProjectors () {
         InvokeProjectors("IE_PowerAnd3DOnHandler", false);
     }
 

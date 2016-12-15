@@ -45,7 +45,9 @@ public class ProjectorScript : MonoBehaviour {
 
         inputStatus.text = portName + (pPort.IsWorking ? "" : " not") + " connected";
         ColorBlock colorBlock = statusConnection.colors;
-        colorBlock.normalColor = pPort.IsWorking ? Color.green : Color.red;
+        Color nextColor = pPort.IsWorking ? Color.green : Color.red;
+        colorBlock.normalColor = nextColor;
+        colorBlock.highlightedColor = nextColor;
         statusConnection.colors = colorBlock;
     }
 
