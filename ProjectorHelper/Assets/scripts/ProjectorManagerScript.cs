@@ -87,7 +87,8 @@ public class ProjectorManagerScript : MonoBehaviour {
             });
         }
 
-        ToggleOnOrOffOnlyObjects(false);
+        ToggleOnOnlyObjects(false);
+        ToggleOffOnlyObjects(true);
     }
 	
 	// Update is called once per frame
@@ -128,17 +129,20 @@ public class ProjectorManagerScript : MonoBehaviour {
         foreach (GameObject obj in GameObject.FindGameObjectsWithTag(tag)) cb(obj);
     }
 
-    private void ToggleOnOrOffOnlyObjects (bool isOnOnly) {
-        LoopGameObjectsWithTag(PROJECTOR_OFF_ONLY_TAG, (gameObj) => {
-            Button btn = gameObj.GetComponent<Button>();
-            if (btn != null) {
-                btn.interactable = !isOnOnly;
-            }
-        });
+    private void ToggleOnOnlyObjects (bool isOn) {
         LoopGameObjectsWithTag(PROJECTOR_ON_ONLY_TAG, (gameObj) => {
             Button btn = gameObj.GetComponent<Button>();
             if (btn != null) {
-                btn.interactable = isOnOnly;
+                btn.interactable = isOn;
+            }
+        });
+    }
+
+    private void ToggleOffOnlyObjects(bool isOn) {
+        LoopGameObjectsWithTag(PROJECTOR_OFF_ONLY_TAG, (gameObj) => {
+            Button btn = gameObj.GetComponent<Button>();
+            if (btn != null) {
+                btn.interactable = isOn;
             }
         });
     }
@@ -173,9 +177,10 @@ public class ProjectorManagerScript : MonoBehaviour {
     }
 
     private IEnumerator _TurnOnProjectors () {
+        ToggleOffOnlyObjects(false);
         InvokeProjectors("IE_PowerAnd3DOnHandler", false);
         yield return new WaitForSeconds(60);
-        ToggleOnOrOffOnlyObjects(true);
+        ToggleOnOnlyObjects(true);
     }
 
     public void TurnOnProjectors () {
@@ -191,8 +196,9 @@ public class ProjectorManagerScript : MonoBehaviour {
 	}
 
 	public void TerminateProjectors () {
-        ToggleOnOrOffOnlyObjects(false);
+        ToggleOnOnlyObjects(false);
         InvokeProjectors("PowerOffHandler");
+        ToggleOffOnlyObjects(true);
     }
 
     private void SavePortNames () {

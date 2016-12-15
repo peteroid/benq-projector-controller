@@ -7,12 +7,16 @@ public class ProjectorScript : MonoBehaviour {
 
 	public Button btnPowerOn;
 	public Button btnPowerOff;
-    public InputField inputStatus;
+    public InputField inputStatus, inputDelay;
     public Button statusConnection;
 
-	public string portName;
+    public const float PROJECTOR_ON_TO_3D_DELAY_S = 60;
+    public const string PREF_PROJECTOR_ON_TO_3D_DELAY_PREFIX = "_pref_on_3d_delay_";
+
+    public string portName;
     private ProjectorPort pPort;
     private string modelName;
+    private float delayOnTo3D = PROJECTOR_ON_TO_3D_DELAY_S;
 
     public bool isProjectorInit {
         get {
@@ -26,6 +30,12 @@ public class ProjectorScript : MonoBehaviour {
         }
     }
 
+    public bool isPortNameInvalid {
+        get {
+            return portName == "" || Array.IndexOf(ProjectorManagerScript.PROJECTOR_ERROR_STRINGS, portName) >= 0;
+        }
+    }
+
 	// Use this for initialization
 	void Start () {
         inputStatus.text = inputStatus.text == "" ? portName : inputStatus.text;
@@ -36,9 +46,17 @@ public class ProjectorScript : MonoBehaviour {
 	
 	}
 
+    void OnApplicationQuit () {
+        if (!isPortNameInvalid) {
+            Debug.Log("Save float");
+            PlayerPrefs.SetFloat(PREF_PROJECTOR_ON_TO_3D_DELAY_PREFIX + portName, delayOnTo3D);
+            PlayerPrefs.Save();
+        }
+    }
+
 	public void Init () {
         portName = inputStatus.text;
-        if (portName == "" || Array.IndexOf(ProjectorManagerScript.PROJECTOR_ERROR_STRINGS, portName) >= 0) return;
+        if (isPortNameInvalid) return;
         pPort = new ProjectorPort(portName);
         pPort.Open ();
 		//Debug.Log (pPort.IsPortInitialized);
@@ -51,9 +69,25 @@ public class ProjectorScript : MonoBehaviour {
         statusConnection.colors = colorBlock;
     }
 
+    public void OnDelayChangeHandler () {
+        float delay;
+        try {
+            delay = float.Parse(inputDelay.text);
+            delayOnTo3D = delay;
+            //Debug.Log(delay);
+        } catch (FormatException e) {
+            Debug.Log(e.Message);
+        }
+    }
+
     public void SetPortName (string portName) {
         this.portName = portName;
         inputStatus.text = portName;
+
+        if (!isPortNameInvalid) {
+            delayOnTo3D = PlayerPrefs.GetFloat(PREF_PROJECTOR_ON_TO_3D_DELAY_PREFIX + portName, delayOnTo3D);
+            inputDelay.text = delayOnTo3D.ToString();
+        }
     }
 
 	public void End () {
@@ -64,13 +98,16 @@ public class ProjectorScript : MonoBehaviour {
     IEnumerator IE_PowerAnd3DOnHandler () {
         Debug.Log("Async init? " + isProjectorInit);
         if (!isProjectorInit) Init();
-        Debug.Log("Async power + 3d");
-        pPort.PowerOn();
-        yield return new WaitForSeconds(60f);
-        Debug.Log("Async 3d");
-        pPort._3DEnable();
-        yield return new WaitForSeconds(1f);
-        UpdateStatus();
+
+        if (pPort != null) {
+            Debug.Log("Async power + 3d");
+            pPort.PowerOn();
+            yield return new WaitForSeconds(delayOnTo3D);
+            Debug.Log("Async 3d");
+            pPort._3DEnable();
+            yield return new WaitForSeconds(1f);
+            UpdateStatus();
+        }
     }
 
 	public void PowerOnHandler () {
