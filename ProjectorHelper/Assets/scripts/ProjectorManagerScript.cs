@@ -169,11 +169,11 @@ public class ProjectorManagerScript : MonoBehaviour {
     }
 
     public void Turn3DProjectors () {
-        InvokeProjectors("ThreeDOnHandler");
+        InvokeProjectors("ThreeDOnHandler", false);
     }
 
     public void Turn2DProjectors() {
-        InvokeProjectors("ThreeDOffHandler");
+        InvokeProjectors("ThreeDOffHandler", false);
     }
 
     private IEnumerator _TurnOnProjectors () {

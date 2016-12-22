@@ -95,8 +95,19 @@ public class ProjectorScript : MonoBehaviour {
 		    pPort.Close ();
 	}
 
+    private void TryInitAndDo (Action cb) {
+        if (!isProjectorInit) Init();
+
+        if (pPort != null) {
+            cb();
+        }
+    }
+
     IEnumerator IE_PowerAnd3DOnHandler () {
         Debug.Log("Async init? " + isProjectorInit);
+        TryInitAndDo(() => {
+            pPort.PowerOff();
+        });
         if (!isProjectorInit) Init();
 
         if (pPort != null) {
@@ -115,19 +126,21 @@ public class ProjectorScript : MonoBehaviour {
 	}
 
 	public void PowerOffHandler () {
-        if (!isProjectorInit) Init();
-
-        if (pPort != null) {
+        TryInitAndDo(() => {
             pPort.PowerOff();
-        }        
+        });       
 	}
 
     public void ThreeDOnHandler() {
-        pPort._3DEnable();
+        TryInitAndDo(() => {
+            pPort._3DEnable();
+        });
     }
 
     public void ThreeDOffHandler () {
-        pPort._3DDisable();
+        TryInitAndDo(() => {
+            pPort._3DEnable();
+        });
     }
 
     public void UpdateStatus () {
