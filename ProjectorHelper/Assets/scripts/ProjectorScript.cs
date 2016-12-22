@@ -111,11 +111,15 @@ public class ProjectorScript : MonoBehaviour {
     }
 
 	public void PowerOnHandler () {
-		pPort.PowerOn ();
+        pPort.PowerOn();
 	}
 
 	public void PowerOffHandler () {
-		pPort.PowerOff ();
+        if (!isProjectorInit) Init();
+
+        if (pPort != null) {
+            pPort.PowerOff();
+        }        
 	}
 
     public void ThreeDOnHandler() {

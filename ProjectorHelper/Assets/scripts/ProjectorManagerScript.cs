@@ -87,7 +87,7 @@ public class ProjectorManagerScript : MonoBehaviour {
             });
         }
 
-        ToggleOnOnlyObjects(false);
+        ToggleOnOnlyObjects(true);
         ToggleOffOnlyObjects(true);
     }
 	
@@ -177,10 +177,10 @@ public class ProjectorManagerScript : MonoBehaviour {
     }
 
     private IEnumerator _TurnOnProjectors () {
-        ToggleOffOnlyObjects(false);
+        //ToggleOffOnlyObjects(false);
         InvokeProjectors("IE_PowerAnd3DOnHandler", false);
-        yield return new WaitForSeconds(60);
-        ToggleOnOnlyObjects(true);
+        yield return new WaitForSeconds(1);
+        //ToggleOnOnlyObjects(true);
     }
 
     public void TurnOnProjectors () {
@@ -196,9 +196,9 @@ public class ProjectorManagerScript : MonoBehaviour {
 	}
 
 	public void TerminateProjectors () {
-        ToggleOnOnlyObjects(false);
-        InvokeProjectors("PowerOffHandler");
-        ToggleOffOnlyObjects(true);
+        //ToggleOnOnlyObjects(false);
+        InvokeProjectors("PowerOffHandler", false);
+        //ToggleOffOnlyObjects(true);
     }
 
     private void SavePortNames () {
