@@ -29,6 +29,7 @@ public class ProjectorManagerScript : MonoBehaviour {
 
     private List<ProjectorScript> projectors;
     private Regex portNameDetectRegex;
+    private bool willBeShutdown = false;
 
     // Use this for initialization
     void Start () {
@@ -212,12 +213,21 @@ public class ProjectorManagerScript : MonoBehaviour {
         PlayerPrefs.SetString(PREF_DEFAULT_PORT_NAMES_KEY, namesStr);
     }
 
-    public void ShutdownSystem () {
-        SystemD.Process.Start("shutdown", "/s /t 0");
+    public void ShutdownSystem (Text buttonText) {
+        if (willBeShutdown) {
+            SystemD.Process.Start("shutdown", "/a");
+            buttonText.text = "Shutdown";
+        } else {
+            SystemD.Process.Start("shutdown", "/s /t 30 /c \"The system will be down in 30 seconds.\" ");
+            buttonText.text = "Cancel\nShutdown";
+        }
+
+        willBeShutdown = !willBeShutdown;
     }
 
-	void OnApplicationQuit() {
+    void OnApplicationQuit() {
 		Debug.Log ("Quit");
 		TerminateProjectors ();
 	}
+
 }
