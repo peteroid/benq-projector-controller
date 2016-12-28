@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using System.Collections;
 using System;
+using System.Threading;
 
 public class ProjectorScript : MonoBehaviour {
 
@@ -103,11 +104,22 @@ public class ProjectorScript : MonoBehaviour {
         }
     }
 
+    private IEnumerator TryInitAndDoAsync(Action cb, float actionDelaySec = 10f) {
+        bool didInit = false;
+        if (!isProjectorInit) {
+            Init();
+            didInit = true;
+        }
+
+        if (pPort != null) {
+            Debug.Log("Wait for " + actionDelaySec);
+            yield return new WaitForSeconds(didInit ? actionDelaySec : 0.5f);
+            cb();
+        }
+    }
+
     IEnumerator IE_PowerAnd3DOnHandler () {
         Debug.Log("Async init? " + isProjectorInit);
-        TryInitAndDo(() => {
-            pPort.PowerOff();
-        });
         if (!isProjectorInit) Init();
 
         if (pPort != null) {
@@ -117,7 +129,7 @@ public class ProjectorScript : MonoBehaviour {
             Debug.Log("Async 3d");
             pPort._3DEnable();
             yield return new WaitForSeconds(1f);
-            UpdateStatus();
+            UpdateHandler();
         }
     }
 
@@ -126,21 +138,24 @@ public class ProjectorScript : MonoBehaviour {
 	}
 
 	public void PowerOffHandler () {
-        TryInitAndDo(() => {
+        StartCoroutine(TryInitAndDoAsync(() => {
+            Debug.Log("now off...");
             pPort.PowerOff();
-        });       
-	}
+        }));
+    }
 
     public void ThreeDOnHandler() {
-        TryInitAndDo(() => {
+        StartCoroutine(TryInitAndDoAsync(() => {
+            Debug.Log("now 3d on...");
             pPort._3DEnable();
-        });
+        }));
     }
 
     public void ThreeDOffHandler () {
-        TryInitAndDo(() => {
-            pPort._3DEnable();
-        });
+        StartCoroutine(TryInitAndDoAsync(() => {
+            Debug.Log("now 3d off...");
+            pPort._3DDisable();
+        }));
     }
 
     public void UpdateStatus () {
