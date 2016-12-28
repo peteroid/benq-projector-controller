@@ -11,6 +11,7 @@ public class ProjectorScript : MonoBehaviour {
     public InputField inputStatus, inputDelay;
     public Button statusConnection;
 
+    public const float PROJECT_INIT_TO_DO_DELAY_S = 10;
     public const float PROJECTOR_ON_TO_3D_DELAY_S = 60;
     public const string PREF_PROJECTOR_ON_TO_3D_DELAY_PREFIX = "_pref_on_3d_delay_";
 
@@ -104,7 +105,7 @@ public class ProjectorScript : MonoBehaviour {
         }
     }
 
-    private IEnumerator TryInitAndDoAsync(Action cb, float actionDelaySec = 10f) {
+    private IEnumerator TryInitAndDoAsync(Action cb, float actionDelaySec = PROJECT_INIT_TO_DO_DELAY_S) {
         bool didInit = false;
         if (!isProjectorInit) {
             Init();
@@ -120,10 +121,15 @@ public class ProjectorScript : MonoBehaviour {
 
     IEnumerator IE_PowerAnd3DOnHandler () {
         Debug.Log("Async init? " + isProjectorInit);
-        if (!isProjectorInit) Init();
+        bool didInit = false;
+        if (!isProjectorInit) {
+            Init();
+            didInit = true;
+        }
 
         if (pPort != null) {
             Debug.Log("Async power + 3d");
+            yield return new WaitForSeconds(didInit ? PROJECT_INIT_TO_DO_DELAY_S : 0.5f);
             pPort.PowerOn();
             yield return new WaitForSeconds(delayOnTo3D);
             Debug.Log("Async 3d");
