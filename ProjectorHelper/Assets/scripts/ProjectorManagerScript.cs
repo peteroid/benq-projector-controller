@@ -219,6 +219,7 @@ public class ProjectorManagerScript : MonoBehaviour {
     }
 
     IEnumerator ShutdownSystemAfter (float seconds = 30) {
+        ProgressManagerScript.DoJob("ShutdownSystemAfter");
         if (seconds < 5) {
             seconds = 5;
         }
@@ -229,11 +230,13 @@ public class ProjectorManagerScript : MonoBehaviour {
         yield return new WaitForSeconds(5);
         // issue a command to shutdown the computer
         SystemD.Process.Start("shutdown", "/s /t 10 /c \"Projectors are off. The system will be down in 10 seconds.\" ");
+        ProgressManagerScript.FinishJob("ShutdownSystemAfter");
     }
 
     public void ShutdownSystem (Text buttonText) {
         if (!willBeShutdown) {
             StopCoroutine(shutdownCoroutine);
+            ProgressManagerScript.FinishJob("ShutdownSystemAfter");
             buttonText.text = "Shutdown";
         } else {
             shutdownCoroutine = StartCoroutine(ShutdownSystemAfter());

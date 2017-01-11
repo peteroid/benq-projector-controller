@@ -106,6 +106,7 @@ public class ProjectorScript : MonoBehaviour {
     }
 
     private IEnumerator TryInitAndDoAsync(Action cb, float actionDelaySec = PROJECT_INIT_TO_DO_DELAY_S) {
+        ProgressManagerScript.DoJob("TryInitAndDoAsync:" + cb.Method.Name);
         bool didInit = false;
         if (!isProjectorInit) {
             Init();
@@ -117,9 +118,11 @@ public class ProjectorScript : MonoBehaviour {
             yield return new WaitForSeconds(didInit ? actionDelaySec : 0.5f);
             cb();
         }
+        ProgressManagerScript.FinishJob("TryInitAndDoAsync:" + cb.Method.Name);
     }
 
     IEnumerator IE_PowerAnd3DOnHandler () {
+        ProgressManagerScript.DoJob("IE_PowerAnd3DOnHandler");
         Debug.Log("Async init? " + isProjectorInit);
         bool didInit = false;
         if (!isProjectorInit) {
@@ -137,6 +140,7 @@ public class ProjectorScript : MonoBehaviour {
             yield return new WaitForSeconds(1f);
             UpdateHandler();
         }
+        ProgressManagerScript.FinishJob("IE_PowerAnd3DOnHandler");
     }
 
 	public void PowerOnHandler () {
