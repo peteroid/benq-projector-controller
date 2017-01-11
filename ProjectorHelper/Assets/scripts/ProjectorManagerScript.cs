@@ -203,6 +203,10 @@ public class ProjectorManagerScript : MonoBehaviour {
         //ToggleOffOnlyObjects(true);
     }
 
+    public void CloseProjectorPorts () {
+        InvokeProjectors("End", false);
+    }
+
     private void SavePortNames () {
         string[] names = new string[projectors.Count];
         LoopProjectors((projector, index) => {
@@ -240,7 +244,7 @@ public class ProjectorManagerScript : MonoBehaviour {
 
     void OnApplicationQuit() {
 		Debug.Log ("Quit");
-		TerminateProjectors ();
+		CloseProjectorPorts ();
 	}
 
 }
