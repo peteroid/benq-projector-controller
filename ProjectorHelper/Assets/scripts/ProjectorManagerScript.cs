@@ -29,7 +29,8 @@ public class ProjectorManagerScript : MonoBehaviour {
 
     private List<ProjectorScript> projectors;
     private Regex portNameDetectRegex;
-    private bool willBeShutdown = false;
+    private bool willBeShutdown = true;
+    private Coroutine shutdownCoroutine;
 
     // Use this for initialization
     void Start () {
@@ -213,15 +214,27 @@ public class ProjectorManagerScript : MonoBehaviour {
         PlayerPrefs.SetString(PREF_DEFAULT_PORT_NAMES_KEY, namesStr);
     }
 
+    IEnumerator ShutdownSystemAfter (float seconds = 30) {
+        if (seconds < 5) {
+            seconds = 5;
+        }
+        yield return new WaitForSeconds(seconds - 5);
+        // turn of the projectors first
+        TerminateProjectors();
+
+        yield return new WaitForSeconds(5);
+        // issue a command to shutdown the computer
+        SystemD.Process.Start("shutdown", "/s /t 10 /c \"Projectors are off. The system will be down in 10 seconds.\" ");
+    }
+
     public void ShutdownSystem (Text buttonText) {
-        if (willBeShutdown) {
-            SystemD.Process.Start("shutdown", "/a");
+        if (!willBeShutdown) {
+            StopCoroutine(shutdownCoroutine);
             buttonText.text = "Shutdown";
         } else {
-            SystemD.Process.Start("shutdown", "/s /t 30 /c \"The system will be down in 30 seconds.\" ");
+            shutdownCoroutine = StartCoroutine(ShutdownSystemAfter());
             buttonText.text = "Cancel\nShutdown";
         }
-
         willBeShutdown = !willBeShutdown;
     }
 
